@@ -24,21 +24,21 @@ class State(TypedDict):
 
 
 #Defining Nodes
-def initial_conversation(state):
-    return {"state" : state["state"] + ", I am working"}
+def test_node(state):
+    print("---TEST NODE---")
+    return {"state" : state["state"] + " the test was successful!"}
 
 
 #'Nodes'
 builder = StateGraph(State)
-builder.add_node("initial_conversation", initial_conversation)
+builder.add_node("test_node", test_node)
 
 #Edges
 #Edges alwas refer to the "naming" of the node, not the node itself*
-builder.add_edge(START, "initial_conversation")
-builder.add_edge("initial_conversation", END)
+builder.add_edge(START, "test_node")
+builder.add_edge("test_node", END)
 graph = builder.compile()
 
-
-user_says = input("You:\n")
-final_output = graph.invoke({"state" : f"{user_says}"})
+#We invoke the graph with an initial state
+final_output = graph.invoke({"state" : "Running Test! and..."})
 print(final_output)
