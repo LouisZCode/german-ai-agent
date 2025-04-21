@@ -25,4 +25,4 @@ pip install -r requirements.txt
 
 ## Development
 - Virtual environment is located in the `venv` directory
-- Make sure to activate the virtual environment before running the application 
+- Make sure to activate the virtual environment before running the application
