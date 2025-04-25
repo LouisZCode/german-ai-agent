@@ -25,7 +25,7 @@ class State(TypedDict):
 
 #Defining Nodes
 def test_node(state):
-    print("---TEST NODE---")
+    #print("---TEST NODE---")
     return {"state" : state["state"] + " the test was successful!"}
 
 
