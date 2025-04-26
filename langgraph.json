@@ -4,11 +4,13 @@
     "00_base_graph": "./00_base_graph.py:graph",
     "01_initial_call": "./01_initial_call.py:graph",
     "03_with_tools": "./03_withTools.py:graph",
-    "04_conversation_V1": "./04_conversation_V1.py:graph"
+    "04_conversation_V1": "./04_conversation_V1.py:graph",
+    "05_initial_call_Voice": "./05_initial_agent_Voice/05_info_gathering_agent.py:graph"
   },
   "env": "./.env",
   "python_version": "3.13",
   "dependencies": [
-    "."
+    ".",
+    "./05_initial_agent_Voice"
   ]
 }

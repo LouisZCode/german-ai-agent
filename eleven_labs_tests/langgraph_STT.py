@@ -1,6 +1,6 @@
 """
 Voice-enabled AI agent using LangGraph with ElevenLabs for speech-to-text and Anthropic's Claude.
-Uses Voice Activity Detection for more natural conversations.
+Uses Voice Activity Detection for more natural conversations and Text-to-Speech for responses.
 """
 import os
 from typing import TypedDict, List, Dict, Any, Optional
@@ -11,6 +11,8 @@ from langgraph.graph import StateGraph
 
 # Import our speech-to-text module with VAD
 from vad_stt_module import SpeechToText
+# Import our new text-to-speech module
+from tts_module import TTSModule
 import sounddevice as sd
 
 # Load environment variables
@@ -23,9 +25,11 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 class AgentState(TypedDict):
     messages: List[Dict[str, Any]]  # List of conversation messages
     input_text: Optional[str]  # Latest input from user (speech)
+    response_text: Optional[str]  # Latest response from assistant (for TTS)
 
-# Initialize speech module
+# Initialize speech modules
 stt = SpeechToText()
+tts = TTSModule()  # Initialize our new TTS module
 
 # Define nodes
 def listen_node(state: AgentState) -> AgentState:
@@ -93,7 +97,23 @@ def agent_node(state: AgentState) -> AgentState:
     
     print(f"🤖 Claude response: \"{response.content}\"")
     
-    return {"messages": messages}
+    # Return updated state with response text for TTS
+    return {
+        "messages": messages,
+        "response_text": response.content
+    }
+
+def speak_node(state: AgentState) -> AgentState:
+    """
+    Convert the assistant's text response to speech and play it
+    """
+    if state.get("response_text"):
+        print("🔊 Speaking response...")
+        tts.speak(state["response_text"])
+        print("✓ Done speaking")
+    
+    # Return state unchanged
+    return {}
 
 # Build the graph
 def build_agent_graph():
@@ -104,11 +124,13 @@ def build_agent_graph():
     workflow.add_node("listen", listen_node)
     workflow.add_node("process_input", process_input)
     workflow.add_node("agent", agent_node)
+    workflow.add_node("speak", speak_node)  # Add new TTS node
     
     # Add edges
     workflow.add_edge("listen", "process_input")
     workflow.add_edge("process_input", "agent")
-    workflow.add_edge("agent", "listen")  # Loop back to listen again
+    workflow.add_edge("agent", "speak")  # Agent now goes to speak
+    workflow.add_edge("speak", "listen")  # After speaking, loop back to listen
     
     # Set entry point
     workflow.set_entry_point("listen")
@@ -118,7 +140,7 @@ def build_agent_graph():
 
 def main():
     """Main function to run the voice agent"""
-    print("🚀 Starting Voice-Enabled AI Agent with Claude and Voice Activity Detection...")
+    print("🚀 Starting Voice-Enabled AI Agent with Claude, VAD, and TTS...")
     print("Press Ctrl+C to exit")
     
     # List available audio devices
@@ -134,7 +156,8 @@ def main():
     # Initialize state
     initial_state = AgentState(
         messages=[],
-        input_text=""
+        input_text="",
+        response_text=None
     )
     
     try:
